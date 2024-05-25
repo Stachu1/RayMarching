@@ -18,15 +18,17 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "RLFS");
 
+    // Load the shader
     const char *fragShaderFileName = "assets/shader.fs";
-
     Shader shader = LoadShader(0, TextFormat(fragShaderFileName, GLSL_VERSION));
 
     // Get shader locations for required uniforms
     int resolutionLoc = GetShaderLocation(shader, "resolution");
     int mouseLoc = GetShaderLocation(shader, "mouse");
     int timeLoc = GetShaderLocation(shader, "time");
+    int skyboxLoc = GetShaderLocation(shader, "skybox");
 
+    // Pass resolution and texture data to the shader
     float resolution[2] = { (float)screenWidth, (float)screenHeight };
     SetShaderValue(shader, resolutionLoc, resolution, SHADER_UNIFORM_VEC2);
 
@@ -36,15 +38,16 @@ int main(void)
 
     SetTargetFPS(60);
 
-    uint8_t i = 0;
+    uint32_t frame = 0;
     while (!WindowShouldClose())
-    {   
-        i++;
-        if (i == 255) {
-            printf("Frame Time: %.2f ms\n", GetFrameTime() * 1000);
+    {   frame++;
+        totalTime += GetFrameTime();
+
+        // Print frame time every 32 frames
+        if (frame % 512 == 0) {
+            printf("Avg Frame Time: %.2f ms\n", totalTime * 1000 / frame);
         }
 
-        totalTime += GetFrameTime();
         Vector2 mouse = GetMousePosition();
         float mousePos[2] = { mouse.x, mouse.y };
 
@@ -62,6 +65,7 @@ int main(void)
             mouseLoc = GetShaderLocation(shader, "mouse");
             timeLoc = GetShaderLocation(shader, "time");
 
+            // Set shader values
             SetShaderValue(shader, resolutionLoc, resolution, SHADER_UNIFORM_VEC2);
         }
 

@@ -35,10 +35,9 @@ const vec3 light_position_2 = vec3(5.0, 5.0, -2.0);
 const vec3 light_color_2 = vec3(0.0, 0.7, 1.0);
 
 vec3 ray_march(Ray ray);
+float get_distance_from_point(vec3 point);
 vec3 get_normal(vec3 point);
-float map_the_world(vec3 point);
-float get_distance_from_sphere(vec3 point, vec3 center, float radius);
-vec3 get_color(vec3 ray_dir, vec3 norm, vec3 point);
+vec3 sample_color(vec3 ray_dir, vec3 norm, vec3 point);
 vec3 apply_gamma(vec3 color);
 
 
@@ -81,21 +80,17 @@ vec3 get_color(vec3 ray_dir, vec3 norm, vec3 point) {
     return color + specular;
 }
 
-float get_distance_from_sphere(vec3 point, vec3 center, float radius) {
-    return length(point - center) - radius;
-}
-
 vec3 get_normal(vec3 point) {
     const vec3 small_step = vec3(0.01, 0.0, 0.0);
-    float g_x = map_the_world(point + small_step.xyy) - map_the_world(point - small_step.xyy);
-    float g_y = map_the_world(point + small_step.yxy) - map_the_world(point - small_step.yxy);
-    float g_z = map_the_world(point + small_step.yyx) - map_the_world(point - small_step.yyx);
+    float g_x = get_distance_from_point(point + small_step.xyy) - get_distance_from_point(point - small_step.xyy);
+    float g_y = get_distance_from_point(point + small_step.yxy) - get_distance_from_point(point - small_step.yxy);
+    float g_z = get_distance_from_point(point + small_step.yyx) - get_distance_from_point(point - small_step.yyx);
     return normalize(vec3(g_x, g_y, g_z));
 }
 
-float map_the_world(vec3 point) {
+float get_distance_from_point(vec3 point) {
     float mod_time = mod(time, 2*PI);
-    float dis = get_distance_from_sphere(point, sphere.center, sphere.radius);
+    float dis = length(point - sphere.center) - sphere.radius;
     
     float displacement = sin(7.0 * point.x) * sin(11.0 * point.y) * sin(17.0 * point.z - 5.0 * mod_time);
     displacement *= 0.05 + sin(mod_time * 2.0) * 0.03;
@@ -111,7 +106,7 @@ vec3 ray_march(in Ray ray) {
 
     for (int i = 0; i < NUM_OF_STEPS; i++) {
         vec3 pos = ray.origin + dis_traveled * ray.direction;
-        float dis_to_closest = map_the_world(pos);
+        float dis_to_closest = get_distance_from_point(pos);
 
         if (dis_to_closest < MIN_HIT_DIS) {
             vec3 norm = get_normal(pos - sphere.center);
