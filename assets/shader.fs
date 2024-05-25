@@ -49,7 +49,7 @@ void main() {
 
     color = apply_gamma(color);
 
-    finalColor = vec4(color, 1.0);
+    finalColor = vec4(color, 0.8);
 }
 
 
@@ -61,7 +61,7 @@ vec3 get_color(vec3 ray_dir, vec3 point) {
     vec3 norm = get_normal(point - sphere.center);
     float b = dot(-norm, ray_dir);
     vec3 c = sphere.color;
-    return vec3(c.x * b, c.y * pow(b, 2.8), c.z * (0.6-b));
+    return vec3(c.x * b, c.y * pow(b, 3.0), c.z * (0.5-b*0.5));
 }
 
 float get_distance_from_sphere(vec3 point, vec3 center, float radius) {
@@ -77,11 +77,11 @@ vec3 get_normal(vec3 point) {
 }
 
 float map_the_world(vec3 point) {
-    float mod_time = mod(time * 3.0, 6.28318530718);
+    float mod_time = mod(time, 2*PI);
     float dis = get_distance_from_sphere(point, sphere.center, sphere.radius);
     
-    float displacement = sin(13 * point.x) * sin(11 * point.y) * sin(20.0 * point.z - mod_time);
-    displacement *= 0.05;
+    float displacement = sin(7.0 * point.x) * sin(11.0 * point.y) * sin(17.0 * point.z - 5.0 * mod_time);
+    displacement *= 0.05 + sin(mod_time * 2.0) * 0.03;
 
     return dis + displacement;
 }

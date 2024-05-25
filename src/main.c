@@ -36,8 +36,14 @@ int main(void)
 
     SetTargetFPS(60);
 
+    uint8_t i = 0;
     while (!WindowShouldClose())
-    {
+    {   
+        i++;
+        if (i == 255) {
+            printf("Frame Time: %.2f ms\n", GetFrameTime() * 1000);
+        }
+
         totalTime += GetFrameTime();
         Vector2 mouse = GetMousePosition();
         float mousePos[2] = { mouse.x, mouse.y };
