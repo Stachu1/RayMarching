@@ -34,11 +34,12 @@ const vec3 light_color_1 = vec3(0.7, 0.0, 1.0);
 const vec3 light_position_2 = vec3(5.0, 5.0, -2.0);
 const vec3 light_color_2 = vec3(0.0, 0.7, 1.0);
 
-vec3 ray_march(Ray ray);
+vec4 ray_march(Ray ray);
 float get_distance_from_point(vec3 point);
 vec3 get_normal(vec3 point);
 vec3 sample_color(vec3 ray_dir, vec3 norm, vec3 point);
 vec3 apply_gamma(vec3 color);
+
 
 
 void main() {
@@ -47,12 +48,7 @@ void main() {
     mouse_uv.y *= -1;
     
     Ray ray = Ray(camera.position, normalize(vec3(uv, 1.0)));    
-
-    vec3 color = ray_march(ray);
-
-    color = apply_gamma(color);
-
-    finalColor = vec4(color, 0.8);
+    finalColor = ray_march(ray);
 }
 
 
@@ -98,7 +94,7 @@ float get_distance_from_point(vec3 point) {
     return dis + displacement;
 }
 
-vec3 ray_march(in Ray ray) {
+vec4 ray_march(in Ray ray) {
     float dis_traveled = 0.0;
     const int NUM_OF_STEPS = 100;
     const float MIN_HIT_DIS = 0.001;
@@ -110,9 +106,9 @@ vec3 ray_march(in Ray ray) {
 
         if (dis_to_closest < MIN_HIT_DIS) {
             vec3 norm = get_normal(pos - sphere.center);
-            // vec3 dir_to_light = normalize(pos - light_position);
-            // float diffuse_intensity = max(0.0, dot(norm, dir_to_light));
-            return get_color(ray.direction, norm, pos);
+            vec3 color = get_color(ray.direction, norm, pos);
+            color = apply_gamma(color);
+            return vec4(color, 1.0);
         }
 
         if (dis_traveled > MAX_TRACE_DIS) {
@@ -121,5 +117,6 @@ vec3 ray_march(in Ray ray) {
 
         dis_traveled += dis_to_closest;
     }
-    return bg_color;
+    // return bg_color;
+    return vec4(vec3(0.0), 0.0);
 }
