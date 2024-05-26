@@ -19,7 +19,7 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "RLFS");
 
     // Load the shader
-    const char *fragShaderFileName = "assets/shader.fs";
+    const char *fragShaderFileName = "assets/shader.glsl";
     Shader shader = LoadShader(0, TextFormat(fragShaderFileName, GLSL_VERSION));
 
     // Load PNG image into CPU memory (RAM)

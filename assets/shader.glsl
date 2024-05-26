@@ -25,14 +25,14 @@ struct Sphere {
 };
 
 
-const vec3 bg_color = vec3(0.0, 0.2, 0.2);
+const vec3 bg_color = vec3(0.05, 0.05, 0.1);
 const Camera camera = Camera(vec3(0.0, 0.0, -1.6), vec3(0.0, 0.0, 1.0));
-const Sphere sphere = Sphere(vec3(0.0, 0.0, 0.0), 1.0, vec3(1.0, 0.8, 0.2));
+const Sphere sphere = Sphere(vec3(0.0, 0.0, 0.0), 1.0, vec3(0.0, 1.0, 1.0));
 const float gamma = 1.0 / 1.6;
 const vec3 light_position_1 = vec3(-5.0, 5.0, -2.0);
-const vec3 light_color_1 = vec3(0.7, 0.0, 1.0);
-const vec3 light_position_2 = vec3(5.0, 5.0, -2.0);
-const vec3 light_color_2 = vec3(0.0, 0.7, 1.0);
+const vec3 light_color_1 = vec3(1.0, 1.0, 1.0);
+const vec3 light_position_2 = vec3(3.0, -2.0, -2.0);
+const vec3 light_color_2 = vec3(1.0, 0, 0.5);
 
 vec4 ray_march(Ray ray);
 float get_distance_from_point(vec3 point);
@@ -117,6 +117,6 @@ vec4 ray_march(in Ray ray) {
 
         dis_traveled += dis_to_closest;
     }
-    // return bg_color;
+    return vec4(bg_color, 1.0);
     return vec4(vec3(0.0), 0.0);
 }
