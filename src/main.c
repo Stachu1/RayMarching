@@ -19,26 +19,28 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "RLFS");
 
     // Load the shader
-    const char *fragShaderFileName = "assets/shader.glsl";
+    const char *fragShaderFileName = "assets/shader.frag";
     Shader shader = LoadShader(0, TextFormat(fragShaderFileName, GLSL_VERSION));
 
-    // Load PNG image into CPU memory (RAM)
-    Image image = LoadImage("assets/bg.png");
-
-    // Load the skybox texture
-    Texture2D texture = LoadTextureFromImage(image);
-
-    // Unload image from RAM
-    UnloadImage(image);
+    // Load texture from file
+    const char *skyboxFilePath = "assets/skybox.png";
+    Texture2D skybox = LoadTexture(skyboxFilePath);
 
     // Get shader locations for required uniforms
     int resolutionLoc = GetShaderLocation(shader, "resolution");
     int mouseLoc = GetShaderLocation(shader, "mouse");
     int timeLoc = GetShaderLocation(shader, "time");
+    // int skyboxLoc = GetShaderLocation(shader, "skybox");
+
+    printf("ResLoc: %d\n", resolutionLoc);
+    printf("MouseLoc: %d\n", mouseLoc);
+    printf("TimeLoc: %d\n", timeLoc);
+    // printf("TextureLoc: %d\n", skyboxLoc);
 
     // Pass resolution and texture data to the shader
     float resolution[2] = { (float)screenWidth, (float)screenHeight };
     SetShaderValue(shader, resolutionLoc, resolution, SHADER_UNIFORM_VEC2);
+    // SetShaderValueTexture(shader, skyboxLoc, skybox);
 
     float totalTime = 0.0f;
 
@@ -75,6 +77,7 @@ int main(void)
 
             // Set shader values
             SetShaderValue(shader, resolutionLoc, resolution, SHADER_UNIFORM_VEC2);
+            // SetShaderValueTexture(shader, skyboxLoc, skybox); // Pass skybox texture to shader
         }
 
         // Set shader required uniform values
@@ -82,14 +85,14 @@ int main(void)
         SetShaderValue(shader, mouseLoc, mousePos, SHADER_UNIFORM_VEC2);
 
         BeginDrawing();
-        DrawTexture(texture, 0, 0, WHITE);
         BeginShaderMode(shader);
-        DrawRectangle(0, 0, screenWidth, screenHeight, WHITE);
+        DrawTexture(skybox, 0, 0, WHITE);
         EndShaderMode();
         EndDrawing();
     }
 
     UnloadShader(shader);
+    UnloadTexture(skybox);
     CloseWindow();
     return 0;
 }
