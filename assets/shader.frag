@@ -62,8 +62,10 @@ void main() {
     mouse_uv.y *= -1;
     
     float phi = camera.rotation;
+    float alp = 0;
     Ray ray = Ray(camera.pos, normalize(vec3(uv, 1.0)));
     ray.dir *= mat3(cos(phi), 0, -sin(phi), 0, 1, 0, sin(phi), 0, cos(phi));
+    ray.dir *= mat3(1, 0, 0, 0, cos(alp), sin(alp), 0, -sin(alp), cos(alp));
 
     ray.dir = normalize(ray.dir);
     finalColor = RayMarch(ray);
@@ -130,8 +132,12 @@ vec4 RayMarch(Ray ray) {
         float dis = GetDistance(pos);
 
         if (dis < MIN_HIT_DIS) {
-            vec3 color = SampleColor(pos, ray.dir);
-            return vec4(color, 1.0);
+            // vec3 color = SampleColor(pos, ray.dir);
+            vec3 norm = GetNormal(pos);
+
+            vec3 specular = ray.dir - norm * dot(ray.dir, norm) * 2.0;
+            return vec4(SampleSkybox(specular), 1.0);
+            // return vec4(color, 1.0);
         }
 
         if (total_traveled > MAX_TRACE_DIS) {
