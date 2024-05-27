@@ -24,6 +24,7 @@ struct Sphere {
     vec3 pos;
     float rad;
     vec3 color;
+    float shininess;
 };
 
 
@@ -32,16 +33,18 @@ struct Light {
     vec3 color;
 };
 
-const int NUM_OF_STEPS = 100;
-const float MIN_HIT_DIS = 0.001;
-const float MAX_TRACE_DIS = 100.0;
+const int NUM_OF_STEPS = 1000;
+const float MIN_HIT_DIS = 0.0001;
+const float MAX_TRACE_DIS = 10.0;
 
 const Camera camera = Camera(vec3(0.0, 0.0, -1.6), 0.0, 1.0/1.6);
 
-const Sphere sphere = Sphere(vec3(0.0, 0.0, 0.0), 1.0, vec3(0.0, 1.0, 1.0));
+const Sphere sphere = Sphere(vec3(0.0, 0.0, 0.0), 1.0, vec3(1.0, 1.0, 1.0), 0.7);
+
+const bool COLOR_EFFECTS = true;
 
 const Light light_1 = Light(vec3(-5.0, 5.0, -2.0), vec3(1.0, 1.0, 1.0));
-const Light light_2 = Light(vec3(3.0, -2.0, -2.0), vec3(0.0, 0, 1.0));
+const Light light_2 = Light(vec3(3.0, -2.0, -2.0), vec3(0.0, 0.0, 1.0));
 
 const int light_count = 2;
 const Light lights[light_count] = Light[light_count](light_1, light_2);
@@ -94,19 +97,37 @@ vec3 GetNormal(vec3 point) {
 
 // Determines color of the sphere in a given point
 vec3 SampleColor(vec3 point, vec3 dir) {
-    vec3 norm = GetNormal(point - sphere.pos);
+    vec3 norm = GetNormal(point);
     float brightness = dot(norm, -dir);
     vec3 color = sphere.color;
-    color.r *= brightness;
-    color.g *= pow(brightness, 2.5);
-    color.b *= (0.5 - 0.5 * brightness);
 
-    for (int i = 0; i < 2; i++) {
-        vec3 halfway_dir = normalize(normalize(lights[i].pos - point) - dir);
-        float spec = pow(max(dot(norm, halfway_dir), 0.0), 32.0);
-        color += lights[i].color * spec;
+    // Color blending effects
+    if (COLOR_EFFECTS) {
+        float d_t = mod(seconds, 2.0*PI);
+        color.r *= max(sin(d_t), sin(d_t - 3.0 * PI / 2.0));
+        color.g *= max(sin(d_t - PI / 2.0), 0.0);
+        color.b *= max(sin(d_t - PI), 0.0);
+        // color.r *= brightness;
+        // color.g *= pow(brightness, 2.5);
+        // color.b *= (0.5 - 0.5 * brightness);
+    }
+    else {
+        color *= brightness;
     }
     
+    // Light sources influence
+    for (int i = 0; i < 2; i++) {
+        vec3 halfway_dir = normalize(normalize(lights[i].pos - point) - dir);
+        color += lights[i].color * pow(max(dot(norm, halfway_dir), 0.0), 32.0);
+    }
+
+    // Specular reflection
+    vec3 spec_dir = dir - norm * dot(dir, norm) * 2.0;
+    vec3 spec_color = SampleSkybox(spec_dir);
+    
+    // Blend colors
+    color = color + (spec_color - color) * sphere.shininess;
+
     color = ApplyGamma(color);
     return color;
 }
@@ -132,12 +153,8 @@ vec4 RayMarch(Ray ray) {
         float dis = GetDistance(pos);
 
         if (dis < MIN_HIT_DIS) {
-            // vec3 color = SampleColor(pos, ray.dir);
-            vec3 norm = GetNormal(pos);
-
-            vec3 specular = ray.dir - norm * dot(ray.dir, norm) * 2.0;
-            return vec4(SampleSkybox(specular), 1.0);
-            // return vec4(color, 1.0);
+            vec3 color = SampleColor(pos, ray.dir);
+            return vec4(color, 1.0);
         }
 
         if (total_traveled > MAX_TRACE_DIS) {
