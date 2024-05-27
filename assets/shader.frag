@@ -16,7 +16,7 @@ struct Ray {
 
 struct Camera {
     vec3 pos;
-    vec3 dir;
+    float rotation;
     float gamma;
 };
 
@@ -36,7 +36,7 @@ const int NUM_OF_STEPS = 100;
 const float MIN_HIT_DIS = 0.001;
 const float MAX_TRACE_DIS = 100.0;
 
-const Camera camera = Camera(vec3(0.0, 0.0, -1.6), vec3(0.0, 0.0, 1.0), 1.0/1.6);
+const Camera camera = Camera(vec3(0.0, 0.0, -1.6), 0.0, 1.0/1.6);
 
 const Sphere sphere = Sphere(vec3(0.0, 0.0, 0.0), 1.0, vec3(0.0, 1.0, 1.0));
 
@@ -61,7 +61,11 @@ void main() {
     vec2 mouse_uv = 2.0 * mouse.xy / resolution.xy - 1.0;
     mouse_uv.y *= -1;
     
-    Ray ray = Ray(camera.pos, normalize(vec3(uv, 1.0)));    
+    float phi = camera.rotation;
+    Ray ray = Ray(camera.pos, normalize(vec3(uv, 1.0)));
+    ray.dir *= mat3(cos(phi), 0, -sin(phi), 0, 1, 0, sin(phi), 0, cos(phi));
+
+    ray.dir = normalize(ray.dir);
     finalColor = RayMarch(ray);
 }
 
@@ -91,9 +95,9 @@ vec3 SampleColor(vec3 point, vec3 dir) {
     vec3 norm = GetNormal(point - sphere.pos);
     float brightness = dot(norm, -dir);
     vec3 color = sphere.color;
-    color.x *= brightness;
-    color.y *= pow(brightness, 2.5);
-    color.z *= (0.5 - 0.5 * brightness);
+    color.r *= brightness;
+    color.g *= pow(brightness, 2.5);
+    color.b *= (0.5 - 0.5 * brightness);
 
     for (int i = 0; i < 2; i++) {
         vec3 halfway_dir = normalize(normalize(lights[i].pos - point) - dir);
@@ -107,16 +111,14 @@ vec3 SampleColor(vec3 point, vec3 dir) {
 
 // Applys gamma correction to the given color
 vec3 ApplyGamma(vec3 color) {
-    return vec3(pow(color.x, camera.gamma), pow(color.y, camera.gamma), pow(color.z, camera.gamma));
+    return vec3(pow(color.r, camera.gamma), pow(color.g, camera.gamma), pow(color.b, camera.gamma));
 }
 
 // Samples skybox based on the ray direction
 vec3 SampleSkybox(vec3 dir) {
-    const int width = 3072;
-    const int height = 1536;
     float u = 0.5 + atan(dir.z, dir.x) / (2.0 * PI);
-    float v = 0.5 + asin(-dir.y) / PI;
-    return texture(skybox, vec2(u, v)).xyz;
+    float v = 0.5 - asin(dir.y) / PI;
+    return texture(skybox, vec2(u, v)).rgb;
 }
 
 // Petforms ray marching and return color as vec4
