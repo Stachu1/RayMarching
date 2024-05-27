@@ -39,9 +39,9 @@ const float MAX_TRACE_DIS = 10.0;
 
 const Camera camera = Camera(vec3(0.0, 0.0, -1.6), 0.0, 1.0/1.6);
 
-const Sphere sphere = Sphere(vec3(0.0, 0.0, 0.0), 1.0, vec3(1.0, 1.0, 1.0), 0.7);
+const Sphere sphere = Sphere(vec3(0.0, 0.0, 0.0), 1.0, vec3(1.0, 1.0, 1.0), 1.0);
 
-const bool COLOR_EFFECTS = true;
+const bool COLOR_EFFECTS = false;
 
 const Light light_1 = Light(vec3(-5.0, 5.0, -2.0), vec3(1.0, 1.0, 1.0));
 const Light light_2 = Light(vec3(3.0, -2.0, -2.0), vec3(0.0, 0.0, 1.0));
@@ -139,7 +139,7 @@ vec3 ApplyGamma(vec3 color) {
 
 // Samples skybox based on the ray direction
 vec3 SampleSkybox(vec3 dir) {
-    float u = 0.5 + atan(dir.z, dir.x) / (2.0 * PI);
+    float u = 0.5 - atan(dir.z, dir.x) / (2.0 * PI);
     float v = 0.5 - asin(dir.y) / PI;
     return texture(skybox, vec2(u, v)).rgb;
 }
@@ -163,5 +163,5 @@ vec4 RayMarch(Ray ray) {
 
         total_traveled += dis;
     }
-    return vec4(SampleSkybox(ray.dir), 1.0);
+    return vec4(ApplyGamma(SampleSkybox(ray.dir)), 1.0);
 }
