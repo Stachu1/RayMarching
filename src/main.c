@@ -13,84 +13,77 @@ time_t GetFileModificationTime(const char *fileName);
 
 int main(void)
 {
-    const int screenWidth = 500;
-    const int screenHeight = 500;
+    const int screen_width = 500;
+    const int screen_height = 500;
 
-    InitWindow(screenWidth, screenHeight, "RLFS");
+    InitWindow(screen_width, screen_height, "RLFS");
 
     // Load the shader
-    const char *fragShaderFileName = "assets/shader.frag";
-    Shader shader = LoadShader(0, TextFormat(fragShaderFileName, GLSL_VERSION));
+    const char *frag_shader_fn = "assets/shader.frag";
+    Shader shader = LoadShader(0, TextFormat(frag_shader_fn, GLSL_VERSION));
 
     // Load texture from file
-    const char *skyboxFilePath = "assets/skybox.png";
-    Texture2D skybox = LoadTexture(skyboxFilePath);
+    const char *skybox_fn = "assets/skybox.png";
+    Texture2D skybox = LoadTexture(skybox_fn);
 
     // Get shader locations for required uniforms
-    int resolutionLoc = GetShaderLocation(shader, "resolution");
-    int mouseLoc = GetShaderLocation(shader, "mouse");
-    int timeLoc = GetShaderLocation(shader, "time");
-    // int skyboxLoc = GetShaderLocation(shader, "skybox");
+    int resolution_loc = GetShaderLocation(shader, "resolution");
+    int mouse_loc = GetShaderLocation(shader, "mouse");
+    int time_loc = GetShaderLocation(shader, "seconds");
 
-    printf("ResLoc: %d\n", resolutionLoc);
-    printf("MouseLoc: %d\n", mouseLoc);
-    printf("TimeLoc: %d\n", timeLoc);
-    // printf("TextureLoc: %d\n", skyboxLoc);
+    float resolution[2] = { (float)screen_width, (float)screen_height };
+    SetShaderValue(shader, resolution_loc, resolution, SHADER_UNIFORM_VEC2);
 
-    // Pass resolution and texture data to the shader
-    float resolution[2] = { (float)screenWidth, (float)screenHeight };
-    SetShaderValue(shader, resolutionLoc, resolution, SHADER_UNIFORM_VEC2);
-    // SetShaderValueTexture(shader, skyboxLoc, skybox);
+    float seconds = 0.0f;
 
-    float totalTime = 0.0f;
-
-    time_t lastModificationTime = GetFileModificationTime(fragShaderFileName);
+    time_t last_mod_time = GetFileModificationTime(frag_shader_fn);
 
     SetTargetFPS(60);
 
     uint32_t frame = 0;
     while (!WindowShouldClose())
     {   frame++;
-        totalTime += GetFrameTime();
+        seconds += GetFrameTime();
 
-        // Print frame time every 32 frames
+        // Print frame time
         if (frame % 512 == 0) {
-            printf("Avg Frame Time: %.2f ms\n", totalTime * 1000 / frame);
+            printf("Avg Frame Time: %.2f ms\n", seconds * 1000 / frame);
         }
 
         Vector2 mouse = GetMousePosition();
         float mousePos[2] = { mouse.x, mouse.y };
 
         // Check if the shader file has been modified
-        time_t currentModificationTime = GetFileModificationTime(fragShaderFileName);
-        if (currentModificationTime != lastModificationTime) {
-            lastModificationTime = currentModificationTime;
+        time_t current_mod_time = GetFileModificationTime(frag_shader_fn);
+        if (current_mod_time != last_mod_time) {
+            last_mod_time = current_mod_time;
 
             // Unload the previous shader and load the new one
             UnloadShader(shader);
-            shader = LoadShader(0, TextFormat(fragShaderFileName, GLSL_VERSION));
+            shader = LoadShader(0, TextFormat(frag_shader_fn, GLSL_VERSION));
 
             // Update uniform locations
-            resolutionLoc = GetShaderLocation(shader, "resolution");
-            mouseLoc = GetShaderLocation(shader, "mouse");
-            timeLoc = GetShaderLocation(shader, "time");
+            resolution_loc = GetShaderLocation(shader, "resolution");
+            mouse_loc = GetShaderLocation(shader, "mouse");
+            time_loc = GetShaderLocation(shader, "seconds");
 
-            // Set shader values
-            SetShaderValue(shader, resolutionLoc, resolution, SHADER_UNIFORM_VEC2);
-            // SetShaderValueTexture(shader, skyboxLoc, skybox); // Pass skybox texture to shader
+            // Set shader resolution
+            SetShaderValue(shader, resolution_loc, resolution, SHADER_UNIFORM_VEC2);
         }
 
         // Set shader required uniform values
-        SetShaderValue(shader, timeLoc, &totalTime, SHADER_UNIFORM_FLOAT);
-        SetShaderValue(shader, mouseLoc, mousePos, SHADER_UNIFORM_VEC2);
+        SetShaderValue(shader, time_loc, &seconds, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(shader, mouse_loc, mousePos, SHADER_UNIFORM_VEC2);
 
+        // Draw frame
         BeginDrawing();
         BeginShaderMode(shader);
         DrawTexture(skybox, 0, 0, WHITE);
         EndShaderMode();
         EndDrawing();
     }
-
+    
+    // Unload assets
     UnloadShader(shader);
     UnloadTexture(skybox);
     CloseWindow();
