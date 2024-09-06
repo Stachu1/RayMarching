@@ -39,7 +39,7 @@ const float MAX_TRACE_DIS = 10.0;
 
 const Camera camera = Camera(vec3(0.0, 0.0, -2.0), 0.0, 1.0/1.6);
 
-const Body body = Body(vec3(0.0, -1.0, 0.0), vec3(1.0, 0.5, 0.5), vec3(0.7, 1.0, 1.0), 1.3);
+const Body body = Body(vec3(0.0, -0.8, 0.0), vec3(1.0, 0.5, 0.5), vec3(0.9, 1.0, 1.0), 1.3);
 
 const Light light_1 = Light(vec3(-10.0, 10.0, 10.0), vec3(2.0, 2.0, 1.0));
 const Light light_2 = Light(vec3(10.0, 10.0, 10.0), vec3(0.0, 1.0, 5.0));
@@ -82,7 +82,7 @@ float GetDistance(vec3 point) {
     float diff = sin(5.0 * point.x) * sin(3.0 * point.z + 2.0 * d_time);
     diff *= 0.05 + sin(d_time*2) * 0.03;
 
-    return dis + diff;
+    // return dis + diff;
     return dis;
 }
 
@@ -154,24 +154,78 @@ vec3 SampleSkybox(vec3 dir) {
     return texture(skybox, vec2(u, v)).rgb;
 }
 
+
+// Calculates Refraction/Reflection
+Ray Refract(Ray ray) {
+    float u = body.refractive_index;
+    if (GetDistance(ray.ori) > 0.0) {
+        u = 1.0 / body.refractive_index;
+    }
+
+    vec3 norm = -GetNormal(ray.ori);
+    ray.ori += norm * MIN_HIT_DIS * 3.0;
+    
+    float sin_thet = sqrt(1 - pow(dot(norm, ray.dir), 2.0));
+    
+    // if (u * sin_thet > 1) {
+    //     ray.dir = ray.dir - norm * dot(ray.ori, norm) * 2.0;
+    // }
+    // else {
+    //     ray.dir -= norm*0.1;
+    // }
+
+    // ray.dir = ray.dir + norm * dot(ray.ori, norm) * 2.0;
+    // if (u < 1) {
+    //     // ray.dir += norm*0.05;
+    //     ray.dir = ray.dir;
+    // }
+    // else if (u * sin_thet > 1) {
+    //     ray.dir = ray.dir + norm * dot(ray.ori, norm) * 2.0;
+    // }
+    // else {
+    //     ray.dir -= norm*0.05;
+    // }
+
+    if (u * sin_thet < 1) {
+        // Refraction
+        ray.dir = sqrt(1.0 - pow(u, 2.0) * (1.0 - pow(dot(norm, ray.dir), 2.0))) * norm + u * (ray.dir - dot(norm, ray.dir) * norm);
+    }
+    else {
+        // Reflection
+        ray.dir = ray.dir + norm * dot(ray.ori, norm) * 2.0;
+    }
+    
+    return ray;
+}
+
 // Petforms ray marching and return color as vec4
 vec4 RayMarch(Ray ray) {
+    int total_num_of_steps = 0;
     float total_traveled = 0.0;
+    vec3 tint = vec3(1.0);
+    int i = 0;
 
-    for (int i = 0; i < NUM_OF_STEPS; i++) {
-        vec3 pos = ray.dir * total_traveled + ray.ori;
-        float dis = GetDistance(pos);
+    while (total_traveled < MAX_TRACE_DIS && total_num_of_steps < NUM_OF_STEPS) {
+        float traveled = 0.0;
+        while (true) {
+            vec3 pos = ray.dir * traveled + ray.ori;
+            float dis = GetDistance(pos);
 
-        if (dis < MIN_HIT_DIS) {
-            vec3 color = SampleColor(pos, ray.dir);
-            return vec4(color, 1.0);
+            traveled += abs(dis);
+            total_traveled += abs(dis);
+            total_num_of_steps++;
+            if (total_traveled > MAX_TRACE_DIS || total_num_of_steps > NUM_OF_STEPS) break;
+
+            if (abs(dis) < MIN_HIT_DIS) {
+                ray = Refract(ray);
+                tint = body.color;
+                i++;
+                if (i==2) {
+                    return vec4(ApplyGamma(SampleSkybox(ray.dir)*tint), 1.0);
+                }
+                break;
+            }
         }
-
-        if (total_traveled > MAX_TRACE_DIS) {
-            break;
-        }
-
-        total_traveled += dis;
     }
-    return vec4(ApplyGamma(SampleSkybox(ray.dir)), 1.0);
+    return vec4(ApplyGamma(SampleSkybox(ray.dir) * tint), 1.0);
 }

@@ -9,7 +9,7 @@ INCLUDES = $(shell pkg-config --cflags raylib)
 LIBS = $(shell pkg-config --libs raylib)
 
 # Executable name
-TARGET = RLFS
+TARGET = main
 
 # Source files
 SRCS = main.c
