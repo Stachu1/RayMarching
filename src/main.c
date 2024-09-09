@@ -13,8 +13,8 @@ time_t GetFileModificationTime(const char *fileName);
 
 int main(void)
 {
-    const int screen_width = 500;
-    const int screen_height = 500;
+    const int screen_width = 800;
+    const int screen_height = 800;
 
     InitWindow(screen_width, screen_height, "RLFS");
 
@@ -38,7 +38,7 @@ int main(void)
 
     time_t last_mod_time = GetFileModificationTime(frag_shader_fn);
 
-    SetTargetFPS(60);
+    SetTargetFPS(70);
 
     uint32_t frame = 0;
     while (!WindowShouldClose())
@@ -46,7 +46,7 @@ int main(void)
         seconds += GetFrameTime();
 
         // Print frame time
-        if (frame % 512 == 0) {
+        if (frame % 256 == 0) {
             printf("Avg Frame Time: %.2f ms\n", seconds * 1000 / frame);
         }
 
@@ -69,6 +69,8 @@ int main(void)
 
             // Set shader resolution
             SetShaderValue(shader, resolution_loc, resolution, SHADER_UNIFORM_VEC2);
+            frame = 0;
+            seconds = 0;
         }
 
         // Set shader required uniform values
