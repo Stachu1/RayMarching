@@ -104,53 +104,6 @@ vec3 GetNormal(vec3 point) {
 }
 
 
-// // Determines color of the sphere in a given point
-// vec3 SampleColor(vec3 point, vec3 dir) {
-//     vec3 norm = GetNormal(point);
-//     vec3 color = body.color;
-    
-//     // Light sources influence
-//     for (int i = 0; i < 2; i++) {
-//         vec3 halfway_dir = normalize(normalize(lights[i].pos - point) - dir);
-//         color += lights[i].color * pow(max(dot(norm, halfway_dir), 0.0), 32.0);
-//     }
-
-//     // Refraction (Entering the body)
-//     float u = 1.0 / body.refractive_index;
-
-//     dir = -sqrt(1 - pow(u, 2.0) * (1.0 - pow(dot(norm, dir), 2.0))) * norm + u * (dir - dot(norm, dir) * norm);    
-
-//     float total_traveled = 0;
-//     point -= norm * MIN_HIT_DIS * 3.0;
-//     for (int i = 0; i < MAX_NUM_OF_STEPS; i++) {
-//         vec3 pos = dir * total_traveled + point;
-//         float dis = GetDistance(pos);
-
-//         if (dis > -MIN_HIT_DIS) {
-//             norm = -GetNormal(pos);
-//             u = body.refractive_index;
-
-//             float sin_thet = sqrt(1 - pow(dot(-norm, dir), 2.0));
-
-//             if (u * sin_thet > 1) {
-//                 // Total internal reflection
-//                 dir = dir - norm * dot(dir, norm) * 2.0;
-//             }
-//             else{
-//                 // Refraction (Exiting the body)
-//                 dir = -sqrt(1 - pow(u, 2.0) * (1.0 - pow(dot(norm, dir), 2.0))) * norm + u * (dir - dot(norm, dir) * norm);
-//             }
-//             break;
-//         }
-//         total_traveled -= dis;
-//     }
-
-//     color *= SampleSkybox(dir);
-//     color = ApplyGamma(color);
-//     return color;
-// }
-
-
 // Applys gamma correction to the given color
 vec3 ApplyGamma(vec3 color) {
     return vec3(pow(color.r, camera.gamma), pow(color.g, camera.gamma), pow(color.b, camera.gamma));
