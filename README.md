@@ -11,6 +11,7 @@ make run
 <br>
 
 ## Demo
+<img width="800" alt="Glass" src="https://github.com/user-attachments/assets/aa8f3778-1762-4d84-a849-1a1ab8b85451">
 <img width="800" alt="SpecularDemo" src="https://github.com/Stachu1/RayMarching/assets/77758413/8f89575f-0c28-4340-8fb4-0677bc734531">
 <img width="800" alt="ShaderDemo" src="https://github.com/Stachu1/RayMarching/assets/77758413/77b2a6a5-1e4a-457e-9be8-db55300c13c1">
 <img width="800" alt="FragShaderWithBG" src="https://github.com/Stachu1/RayMarching/assets/77758413/400643e6-3b43-4640-a0d1-8681accdfd48">
